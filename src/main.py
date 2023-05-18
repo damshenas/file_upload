@@ -17,7 +17,7 @@ default_signedurl_expiry_seconds = os.environ['DEFAULT_SIGNEDURL_EXPIRY_SECONDS'
 def handler(event, context):
 
     uniquehash = hashlib.sha1("{}".format(time.time_ns()).encode('utf-8')).hexdigest()
-    result = create_presigned_post(images_bucket, "new/{}|".format(uniquehash[:5]) + "${filename}")
+    result = create_presigned_post(images_bucket, "new/{}_".format(uniquehash[:5]) + "${filename}")
 
     return {
         'statusCode': 200,
