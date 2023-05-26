@@ -1,5 +1,7 @@
 from aws_cdk import (
     aws_s3 as _s3,
+    aws_sns as _sns,
+    aws_s3_notifications as _s3n,
     Stack,
     CfnOutput
 )
@@ -79,6 +81,10 @@ class S3ImageUploaderStack(Stack):
 
         ### API gateway finalizing
         self.add_cors_options(api_gateway_landing_page_resource)
+
+        ### File fupload notification
+        new_upload_topic = _sns.Topic(self, "NewFileUploadedTopic")
+        images_S3_bucket.add_event_notification(_s3.EventType.OBJECT_CREATED, _s3n.SnsDestination(new_upload_topic))
 
         ### outputs
         CfnOutput(self, 'LandingPage',
