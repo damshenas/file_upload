@@ -5,11 +5,11 @@
   <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
-    input[type=text] {width:30%;padding:2% 4%;margin:2% 0;display: block;border: thin solid grey;border-radius: 3px;}
-    input[type=submit] {width:30%;padding:2% 4%;margin:2% 0;display: block;background-color:#4caf50;color:#fff;border: thin solid grey;border-radius: 3px;cursor:pointer}
+    input[type=text] {min-width:150px;width:30%;padding:2% 4%;margin:2% 0;display: block;border: thin solid grey;border-radius: 3px;}
+    input[type=submit] {min-width:150px;width:30%;padding:2% 4%;margin:2% 0;display: block;background-color:#4caf50;color:#fff;border: thin solid grey;border-radius: 3px;cursor:pointer}
     input[type="file"] {display: none;}
     .footer{margin-top:30%;display: block;left:50%;align-items:center;position: absolute;}
-    .file-selector-button {width:22%;padding:2% 4%;margin:2% 0;display: block;color: dodgerblue;border: thin solid grey;border-radius: 3px;cursor: pointer;}
+    .file-selector-button {min-width:135px;width:22%;padding:2% 4%;margin:2% 0;display: block;color: dodgerblue;border: thin solid grey;border-radius: 3px;cursor: pointer;}
   </style>
   <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
   <script>
@@ -24,8 +24,21 @@
       $('input[name="x-amz-security-token"]').val(preSignedUrl.fields['x-amz-security-token']);
       $('input[name="Policy"]').val(preSignedUrl.fields.policy);
       $('input[name="X-Amz-Signature"]').val(preSignedUrl.fields['x-amz-signature']);
+
+      $('#file_select').change(function() {
+        var selectedFile = $('input[name="file"]')[0].files[0];
+        $('#file_label').text(selectedFile.name);
+      })
+
     });
 
+    function renameFile(originalFile, newName) {
+      return new File([originalFile], newName, {
+        type: originalFile.type,
+        lastModified: originalFile.lastModified,
+      });
+    }
+    
     function submitFileUpload() {
       event.preventDefault();
 
@@ -40,7 +53,7 @@
       // $(this).find(':input[type=submit]').attr('disabled', true);
 
       var formData = new FormData();
-      var selectedFile = $('input[name="file"]')[0];
+      var selectedFile = $('input[name="file"]')[0].files[0];
       var yName = $("#yname").val();
 
       $('#upload_image_form *').filter(':input').filter(":hidden").each(function(k, v){
@@ -48,7 +61,9 @@
         formData.append(v.name, v.defaultValue);
       });
 
-      formData.append("file", selectedFile.files[0]); 
+      newName = yName + '_' + selectedFile.name;
+      newFile = renameFile(selectedFile, newName);
+      formData.append("file", newFile); 
 
       $.ajax({
           xhr: function() {
@@ -71,7 +86,6 @@
           },
           url: $("#upload_image_form").attr('action'),
           type: 'POST',
-          // headers: {'X-Amz-Tagging': 'yname='+yName},
           data: formData,
           success: function (data) {
             $("#upload_result").text('The file has been successfully uploaded!');
@@ -109,7 +123,7 @@
         <input type="hidden" name="Policy"/>
         <input type="hidden" name="X-Amz-Signature"/>
         <input type="text" id="yname" name="yname" placeholder="Your name ...">
-        <label for="file_select" class="file-selector-button">Select File</label>
+        <label for="file_select" id="file_label" class="file-selector-button">Select File</label>
         <input type="file" id="file_select" name="file"/> <br />
         <input id="submit_upload" type="submit" class="submit" value="Upload" onclick="submitFileUpload()"/>
       </form>
